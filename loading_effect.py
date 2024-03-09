@@ -4,7 +4,7 @@ import random
 import bruhcolor
 from bruhanimate.bruhffer import Buffer
 from bruhanimate.bruhscreen import Screen
-from bruhanimate.bruheffects import SnowEffect
+from bruhanimate.bruheffects import StarEffect
 
 
 class GradientNoise:
@@ -162,8 +162,9 @@ def main(screen: Screen) -> None:
     
     back_buffer = Buffer(height=screen.height, width=screen.width)
     front_buffer = Buffer(height=screen.height, width=screen.width)
-    effect = SnowEffect(Buffer(height=screen.height, width=screen.width), " ")
-    
+    # effect = SnowEffect(Buffer(height=screen.height, width=screen.width), " ")
+    effect = StarEffect(Buffer(height=screen.height, width=screen.width), background=" ")
+
     # have to add these two lines. normally this is handled
     # by a bruhanimate.bruhrenderer
     effect.smart_transparent = False
