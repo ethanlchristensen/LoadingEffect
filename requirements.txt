@@ -1,0 +1,2 @@
+bruhanimate==0.2.5
+bruhcolor==0.0.64
