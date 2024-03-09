@@ -26,15 +26,11 @@ The main concept to understand is how bruhanimate works. We use the `Screen` cla
 
 ```python
 
-from bruhanimate.bruhffer import Buffer
 from bruhanimate.bruhscreen import Screen
 
-
-def main():
-    # buffer
-    buf = Buffer(height=screen.height, width=screen.width)
+def main(screen: Screen):
     # place some text
-    buf.put_at_center(y=screen.height // 2, text="Hello World")
+    screen.print_center("Hello World!", y=screen.height // 2, width=len("Hello World!"))
     # catch the end of the program
     input()
     # you should now have "Hello World" in the center of your termnial
