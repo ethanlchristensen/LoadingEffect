@@ -4,8 +4,6 @@ import random
 import bruhcolor
 from bruhanimate.bruhffer import Buffer
 from bruhanimate.bruhscreen import Screen
-from bruhanimate.bruheffects import SnowEffect
-
 
 class GradientNoise:
     def __init__(self, x, y, length, char_halt=1, color_halt=1, gradient_length=1):
@@ -150,74 +148,46 @@ class GenerateCradle:
         self.chars = self.__main_text + self.__gradle_generator.cradle_chars
 
 
-def main(screen: Screen) -> None:
-    # place the gradient noise
-    noise_1 = GradientNoise(x=0, y=1, length=30, char_halt=20, color_halt=1, gradient_length=5)
-    noise_2 = GradientNoise(x=0, y=3, length=30, char_halt=1, color_halt=20, gradient_length=5)
-    noise_2.update_gradient([21, 57, 93, 129, 165, 201, 165, 129, 93, 57])
-    # place the generate text next to the noise
-    generate_1 = GenerateCradle(x=noise_1.x + noise_1.length + 1, y=1, cradle_length=5, halt=6)
-    generate_2 = GenerateBubble(x=noise_2.x + noise_2.length + 1, y=3, bubbles=5, halt=20)
-    
-    
+def main(screen):
+    noise = GradientNoise(x=0, y=0, length=30, char_halt=1, color_halt=20, gradient_length=5)
+    noise.update_gradient([21, 57, 93, 129, 165, 201, 165, 129, 93, 57])
+    generate = GenerateBubble(x=noise.x + noise.length + 1, y=0, bubbles=5, halt=20)
+
     back_buffer = Buffer(height=screen.height, width=screen.width)
     front_buffer = Buffer(height=screen.height, width=screen.width)
-    effect = SnowEffect(Buffer(height=screen.height, width=screen.width), " ")
-    
-    # have to add these two lines. normally this is handled
-    # by a bruhanimate.bruhrenderer
-    effect.smart_transparent = False
-    effect.collision = True
 
-    # delay to generate the next effect frame
-    effect_halt = 5
-
-    # track the elapsed frames
     current_frame = 0
+    while True:
+        try:
+            # update the noise state
+            noise.generate(current_frame)
+            # update the "Generating....." state
+            generate.generate(current_frame)
 
-    try:
-        while True:
-            # is it time to generate the next effect frame?
-            if current_frame % effect_halt == 0:
-                effect.render_frame(current_frame)
-                back_buffer.sync_with(effect.buffer)
+            # apply the changes to the buffer
+            for i, c in enumerate(noise.colored_chars):
+                back_buffer.put_char(noise.x + i, noise.y, c.colored)
 
-            # update the gradient noise
-            noise_1.generate(current_frame)
-            noise_2.generate(current_frame)
-            
-            # in this case we check if the white color has reached 
-            # the end of the noise, thus triggering a bubble to 
-            # propogate down, generate.free tells us if we need to keep
-            # calling generate on the generate dots
-            if noise_1.string_colors[-1] == 255 or not generate_1.free:
-                generate_1.generate(current_frame)
-            generate_2.generate(current_frame)
-        
-            # add the updates to the back buffer
-            for i, c in enumerate(noise_1.colored_chars):
-                back_buffer.put_char(noise_1.x + i, noise_1.y, c.colored)
-            for i, c in enumerate(noise_2.colored_chars):
-                back_buffer.put_char(noise_2.x + i, noise_2.y, c.colored)
-            
-            # add the updates to the back buffer  
-            for i, c in enumerate(generate_1.chars):
-                back_buffer.put_char(generate_1.x + i, generate_1.y, c)
-            for i, c in enumerate(generate_2.chars):
-                back_buffer.put_char(generate_2.x + i, generate_2.y, c)
+            # apply the changes to the buffer
+            for i, c in enumerate(generate.chars):
+                back_buffer.put_char(generate.x + i, generate.y, c)
 
-            # push the changes to the screen
+            # push the changes to the terminal
             for y, x, val in front_buffer.get_buffer_changes(back_buffer):
                 screen.print_at(val, x, y, 1)
 
-            # sync the back and front
             front_buffer.sync_with(back_buffer)
 
             time.sleep(0.01)
             current_frame += 1
-    except KeyboardInterrupt:
-        pass
-
+        except KeyboardInterrupt:
+            back_buffer.clear_buffer()
+            back_buffer.put_at_center(y=screen.height // 2, text="Press [Enter] to exit")
+            for y, x, val in front_buffer.get_buffer_changes(back_buffer):
+                screen.print_at(val, x, y, 1)
+            input()
+            return
+        
 
 if __name__ == "__main__":
     Screen.show(main)
